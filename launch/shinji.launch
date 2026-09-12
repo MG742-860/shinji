@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- 强制清洗 LD_LIBRARY_PATH：剔除 /opt/MVS 旧 libusb 干扰，统一用干净 ROS 环境 -->
+  <env name="LD_LIBRARY_PATH" value="/home/acermg/catkin_ws/devel/lib:/opt/ros/noetic/lib:/opt/ros/noetic/lib/x86_64-linux-gnu"/>
+
+  <arg name="config_file" default="$(find shinji)/config/swerve.json"/>
+
+  <arg name="nodelet_manager" default="nodelet_manager" />
+
+  <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager)" args="manager"
+        output="screen"/>
+
+  <node pkg="nodelet" type="nodelet" name="shinji" args="load shinji/ShinjiNodelet $(arg nodelet_manager)"
+        output="screen">
+    <param name="config_file" value="$(arg config_file)"/>
+  </node>
+</launch>

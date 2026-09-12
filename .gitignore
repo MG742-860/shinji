@@ -1,0 +1,55 @@
+thirdparty/teaserpp/build/**
+thirdparty/preprocess/build/**
+cmake-build-debug
+thirdparty/teaserpp/build
+thirdparty/teaserpp/build_orig_dynamicx
+thirdparty/teaserpp/cmake
+thirdparty/teaserpp/third_party/pmc/cmake
+thirdparty/teaserpp/third_party/spectra/cmake
+data/**
+logs/**
+pointclouds/**
+
+*.clang-format
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Linker files
+*.ilk
+
+# Debugger Files
+*.pdb
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# debug information files
+*.dwo
