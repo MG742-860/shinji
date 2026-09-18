@@ -22,6 +22,9 @@ public:
   void insert_frame(const Eigen::Isometry3d& pose, const pcl::PointCloud<PointT>::Ptr& cloud);
   ResultT<AlignResult> try_request(const std::optional<Eigen::Isometry3d>& guess = std::nullopt);
   std::shared_ptr<const shinji::ConfigServer> config_server() const { return config; }
+  std::shared_ptr<shinji::GlobalmapServer> globalmap_server() const { return globalmap; }
+
+
 
 private:
   void setup_globalmap();

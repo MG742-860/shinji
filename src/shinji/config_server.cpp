@@ -73,7 +73,20 @@ void ConfigServer::load(const std::string& config_file) {
     initial_guess.rotation =
       Eigen::Vector4f(data["initial_guess"]["rotation"][0], data["initial_guess"]["rotation"][1], data["initial_guess"]["rotation"][2], data["initial_guess"]["rotation"][3]);
 
+    if (data.contains("scancontext")) {
+      const auto& sc = data["scancontext"];
+      scancontext.enable = sc.value("enable", scancontext.enable);
+      scancontext.map_type = sc.value("map_type", scancontext.map_type);
+      scancontext.crop_radius = sc.value("crop_radius", scancontext.crop_radius);
+      scancontext.voxel_resolution = sc.value("voxel_resolution", scancontext.voxel_resolution);
+      scancontext.dist_thres = sc.value("dist_thres", scancontext.dist_thres);
+      scancontext.min_points = sc.value("min_points", scancontext.min_points);
+      scancontext.yaw_sign = sc.value("yaw_sign", scancontext.yaw_sign);
+      scancontext.lidar_height = sc.value("lidar_height", scancontext.lidar_height);
+    }
+
     validation();
+
   } catch (...) {
     throw std::runtime_error("Error parsing configuration file.");
   }
@@ -98,6 +111,13 @@ void ConfigServer::validation() {
     spdlog::error("Cropbox cannot be applied when transformation is not needed.");
     throw std::runtime_error("Invalid configuration.");
   }
+
+  bool scancontext_invalid = scancontext.map_type != "origin" && scancontext.map_type != "filtered";
+  if (scancontext_invalid) {
+    spdlog::error("Invalid scancontext map_type (expected \"origin\" or \"filtered\").");
+    throw std::runtime_error("Invalid configuration.");
+  }
   return;
+
 }
 }  // namespace shinji

@@ -16,8 +16,6 @@
 #include <pcl/point_types.h>
 #include <pcl/filters/voxel_grid.h>
 
-#include <asuka/core/types.hpp>
-
 #include "nanoflann.hpp"
 #include "KDTreeVectorOfVectorsAdaptor.h"
 #include "tic_toc.h"
@@ -33,8 +31,9 @@ using std::atan2;
 using std::cos;
 using std::sin;
 
-using SCPointType = asuka::PointT;  // xyz only. the bin encoding may also use intensity
-                                   // (refer 20 ICRA Intensity Scan Context)
+using SCPointType = pcl::PointXYZI;  // xyz only. the bin encoding may also use intensity
+                                     // (refer 20 ICRA Intensity Scan Context)
+                                     // NOTE: keep this identical to shinji::PointT (see shinji/utility.hpp)
 using KeyMat = std::vector<std::vector<float> >;
 using InvKeyTree = KDTreeVectorOfVectorsAdaptor<KeyMat, float>;
 

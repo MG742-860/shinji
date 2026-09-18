@@ -67,8 +67,10 @@ add_library(shinji
   src/shinji/globalmap_server.cpp
   src/shinji/logging.cpp
   src/shinji/matching_cost_evaluater.cpp
+  src/shinji/scancontext_matcher.cpp
   src/shinji/shinji.cpp
   src/shinji/utility.cpp
+  thirdparty/scancontext/Scancontext.cpp
 )
 target_include_directories(shinji PUBLIC
   include
@@ -77,8 +79,10 @@ target_include_directories(shinji PUBLIC
   ${Boost_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   thirdparty
+  thirdparty/scancontext
   thirdparty/teaserpp/teaser/include
 )
+
 
 add_library(shinji_nodelet apps/shinji_nodelet.cpp)
 add_dependencies(shinji_nodelet ${catkin_EXPORTED_TARGETS})

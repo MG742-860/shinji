@@ -93,6 +93,25 @@ struct InitialGuessConfig {
   Eigen::Vector4f rotation{Eigen::Vector4f::Zero()};
 };
 
+struct ScancontextConfig {
+  bool enable{false};
+  // Which globalmap PCD to crop the descriptor from: "origin" or "filtered".
+  std::string map_type{"filtered"};
+  // Radius (meters) of the local map cropped around the UWB position.
+  double crop_radius{80.0};
+  // Downsampling resolution (meters) applied before building the descriptor.
+  double voxel_resolution{0.2};
+  // Descriptor distance above which the scancontext result is rejected.
+  double dist_thres{0.5};
+  // Minimum number of points required in the cropped map.
+  int min_points{100};
+  // Sign applied to the estimated yaw (+1 or -1), for tuning convention.
+  double yaw_sign{1.0};
+  // Height of the lidar relative to the UWB antenna position.
+  double lidar_height{0.0};
+};
+
+
 class ConfigServer {
 public:
   ConfigServer() = default;
@@ -108,6 +127,8 @@ public:
   TeaserConfig teaser;
   CropboxConfig cropbox;
   InitialGuessConfig initial_guess;
+  ScancontextConfig scancontext;
+
 
 private:
   void validation();

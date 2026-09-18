@@ -7,12 +7,15 @@
 #include <tf2_ros/transform_broadcaster.h>
 
 #include <optional>
+#include <deque>
 
 #include <shinji/Query.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/TransformStamped.h>
 
 #include <shinji/shinji.hpp>
+#include <shinji/scancontext_matcher.hpp>
+
 
 namespace shinji {
 class ShinjiNodelet : public nodelet::Nodelet {
@@ -52,7 +55,15 @@ private:
   std::mutex tf_mutex;
 
   std::unique_ptr<shinji::Shinji> shinji;
+
+  // SC位姿先验估计
+  std::unique_ptr<shinji::ScanContextMatcher> sc_matcher;
+
+  std::mutex query_buffer_mutex;
+  std::deque<pcl::PointCloud<PointT>::Ptr> query_buffer;
+  size_t query_buffer_capacity{8};
 };
+
 
 ShinjiNodelet::~ShinjiNodelet() {
   tf_thread_running.store(false);
@@ -86,7 +97,25 @@ void ShinjiNodelet::onInit() {
 
   setupConfigurations();
 
+  const auto& config = shinji->config_server();
+  if (config->scancontext.enable) {
+    sc_matcher = std::make_unique<shinji::ScanContextMatcher>(config->scancontext);
+
+    const auto gms = shinji->globalmap_server();
+    const auto& map = (config->scancontext.map_type == "origin") ? gms->origin() : gms->filtered();
+    if (!map || map->empty()) {
+      NODELET_ERROR("Scancontext is enabled but the globalmap \"%s\" could not be loaded!", config->scancontext.map_type.c_str());
+      sc_matcher.reset();
+    } else {
+      sc_matcher->set_globalmap(map);
+      query_buffer_capacity = static_cast<size_t>(config->gicp.source_frames);
+      NODELET_INFO("Scancontext enabled, cropping globalmap \"%s\" within %.1f m (points: %zu)", config->scancontext.map_type.c_str(),
+                   config->scancontext.crop_radius, map->size());
+    }
+  }
+
   pointcloud_subscriber = pnh.subscribe(cloud_topic, 5, &ShinjiNodelet::pointcloudCallback, this);
+
   transform_publisher = pnh.advertise<geometry_msgs::TransformStamped>("/shinji/result", 5, false);
   server = pnh.advertiseService("/shinji/query", &ShinjiNodelet::serviceCallback, this);
 
@@ -125,8 +154,18 @@ void ShinjiNodelet::pointcloudCallback(const sensor_msgs::PointCloud2::ConstPtr&
 
   shinji->insert_frame(pose, cloud);
 
+  // Keep the raw (odom/sensor frame) cloud for the scancontext descriptor.
+  if (sc_matcher) {
+    std::lock_guard<std::mutex> lock(query_buffer_mutex);
+    query_buffer.push_back(cloud);
+    while (query_buffer.size() > query_buffer_capacity) {
+      query_buffer.pop_front();
+    }
+  }
+
   return;
 }
+
 
 void ShinjiNodelet::publishTransform(const ros::Time& stamp, const Eigen::Isometry3d& pose) {
   geometry_msgs::TransformStamped msg;
@@ -157,11 +196,34 @@ bool ShinjiNodelet::serviceCallback(shinji::Query::Request& req, shinji::Query::
 
   std::optional<Eigen::Isometry3d> guess;
   if (req.use_guess) {
-
-
-    //TODO : need add rotation
     Eigen::Isometry3d pose = Eigen::Isometry3d::Identity();
     pose.translation() << req.guess_pose.position.x, req.guess_pose.position.y, req.guess_pose.position.z;
+
+    // 启用SC->姿态估计
+    if (sc_matcher) {
+      pcl::PointCloud<PointT>::Ptr query_cloud(new pcl::PointCloud<PointT>());
+      {
+        std::lock_guard<std::mutex> lock(query_buffer_mutex);
+        for (const auto& c : query_buffer) {
+          if (c && !c->empty()) {
+            *query_cloud += *c;
+          }
+        }
+      }
+
+      if (query_cloud->empty()) {
+        NODELET_WARN("Scancontext: query buffer is empty, only UWB translation will be used.");
+      } else {
+        const Eigen::Vector3d center = pose.translation();
+        auto yaw_result = sc_matcher->estimate_yaw(query_cloud, center);
+        if (yaw_result) {
+          pose.linear() = Eigen::AngleAxisd(yaw_result.data, Eigen::Vector3d::UnitZ()).toRotationMatrix();
+          NODELET_INFO("Scancontext yaw: %.3f rad (%.1f deg)", yaw_result.data, yaw_result.data * 180.0 / M_PI);
+        } else {
+          NODELET_WARN("Scancontext yaw estimation failed: %s", yaw_result.message.c_str());
+        }
+      }
+    }
 
     guess = pose;
   }
@@ -176,6 +238,7 @@ bool ShinjiNodelet::serviceCallback(shinji::Query::Request& req, shinji::Query::
   }).detach();
   return true;
 }
+
 
 }  // namespace shinji
 
