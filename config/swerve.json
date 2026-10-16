@@ -10,7 +10,7 @@
   "common": {
     "circular_buffer_capacity": 10,
     "transformation_needed": false,
-    "globalmap_directory": "/home/acermg/catkin_ws/src/shinji/data/",
+    "globalmap_directory": "/home/mg/catkin_ws/src/shinji/data/",
     "globalmap_origin": "globalmap_origin.pcd",
     "globalmap_filtered": "globalmap_filtered.pcd",
     "globalmap_features": "globalmap_features.pcd",
@@ -23,11 +23,11 @@
   },
   "logging": {
     "enable": true,
-    "pcd_saving_path": "/home/acermg/catkin_ws/src/shinji/logs/pointclouds",
+    "pcd_saving_path": "/home/mg/catkin_ws/src/shinji/logs/pointclouds",
     "console_output": true,
     "console_level": "info",
     "file_output": true,
-    "logging_dir": "/home/acermg/catkin_ws/src/shinji/logs",
+    "logging_dir": "/home/mg/catkin_ws/src/shinji/logs",
     "logging_level": "info",
     "flush_level": "info",
     "rotate_logs": true,
@@ -108,5 +108,16 @@
       0.0,
       1.0
     ]
+  },
+  "scancontext": {
+    "enable": true,
+    "map_type": "filtered", // "origin" or "filtered"
+    "crop_radius": 80.0, // radius (m) of the local map cropped around the UWB position
+    "voxel_resolution": 0.2, // downsampling resolution (m) before building the descriptor
+    "dist_thres": 0.5, // descriptor distance above which the result is rejected
+    "min_points": 100, // minimum points required in the cropped map
+    "yaw_sign": 1.0, // sign of the estimated yaw (+1 or -1)
+    "lidar_height": 0.0 // lidar height relative to the UWB antenna
   }
 }
+

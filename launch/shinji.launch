@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <!-- 强制清洗 LD_LIBRARY_PATH：剔除 /opt/MVS 旧 libusb 干扰，统一用干净 ROS 环境 -->
-  <env name="LD_LIBRARY_PATH" value="/home/acermg/catkin_ws/devel/lib:/opt/ros/noetic/lib:/opt/ros/noetic/lib/x86_64-linux-gnu"/>
+  <env name="LD_LIBRARY_PATH" value="/home/mg/catkin_ws/devel/lib:/opt/ros/noetic/lib:/opt/ros/noetic/lib/x86_64-linux-gnu"/>
 
   <arg name="config_file" default="$(find shinji)/config/swerve.json"/>
 

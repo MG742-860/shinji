@@ -53,3 +53,5 @@ pointclouds/**
 
 # debug information files
 *.dwo
+
+SC_UWB_SUMMARY.md
